@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="data/Colombia_1.js"></script>
+        <script src="data/IsladeProvidenciaySantaCatalina_2.js"></script>
+        <script src="data/IslaGorgonayGorgonilla_3.js"></script>
+        <script src="data/Especie_4.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+            highlightLayer.openPopup();
+        }
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[2.5927553750000003,-88.49311749755772],[13.662259625,-70.93527150244226]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_ESRISatellite_0');
+        map.getPane('pane_ESRISatellite_0').style.zIndex = 400;
+        var layer_ESRISatellite_0 = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            pane: 'pane_ESRISatellite_0',
+            opacity: 0.904,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_ESRISatellite_0;
+        map.addLayer(layer_ESRISatellite_0);
+        function pop_Colombia_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(feature.properties['OBJECTID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NOM_DEPART'] !== null ? autolinker.link(feature.properties['NOM_DEPART'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(feature.properties['Shape_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(feature.properties['Shape_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Colombia_1_0() {
+            return {
+                pane: 'pane_Colombia_1',
+                opacity: 1,
+                color: 'rgba(102,51,24,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(179,90,42,1.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Colombia_1');
+        map.getPane('pane_Colombia_1').style.zIndex = 401;
+        map.getPane('pane_Colombia_1').style['mix-blend-mode'] = 'normal';
+        var layer_Colombia_1 = new L.geoJson(json_Colombia_1, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Colombia_1',
+            layerName: 'layer_Colombia_1',
+            pane: 'pane_Colombia_1',
+            onEachFeature: pop_Colombia_1,
+            style: style_Colombia_1_0,
+        });
+        bounds_group.addLayer(layer_Colombia_1);
+        map.addLayer(layer_Colombia_1);
+        function pop_IsladeProvidenciaySantaCatalina_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DeCodigo'] !== null ? autolinker.link(feature.properties['DeCodigo'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DeNombre'] !== null ? autolinker.link(feature.properties['DeNombre'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DeArea'] !== null ? autolinker.link(feature.properties['DeArea'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DeNorma'] !== null ? autolinker.link(feature.properties['DeNorma'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SHAPE_Leng'] !== null ? autolinker.link(feature.properties['SHAPE_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SHAPE_Area'] !== null ? autolinker.link(feature.properties['SHAPE_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_IsladeProvidenciaySantaCatalina_2_0() {
+            return {
+                pane: 'pane_IsladeProvidenciaySantaCatalina_2',
+                opacity: 1,
+                color: 'rgba(56,128,54,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(77,175,74,1.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_IsladeProvidenciaySantaCatalina_2');
+        map.getPane('pane_IsladeProvidenciaySantaCatalina_2').style.zIndex = 402;
+        map.getPane('pane_IsladeProvidenciaySantaCatalina_2').style['mix-blend-mode'] = 'normal';
+        var layer_IsladeProvidenciaySantaCatalina_2 = new L.geoJson(json_IsladeProvidenciaySantaCatalina_2, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_IsladeProvidenciaySantaCatalina_2',
+            layerName: 'layer_IsladeProvidenciaySantaCatalina_2',
+            pane: 'pane_IsladeProvidenciaySantaCatalina_2',
+            onEachFeature: pop_IsladeProvidenciaySantaCatalina_2,
+            style: style_IsladeProvidenciaySantaCatalina_2_0,
+        });
+        bounds_group.addLayer(layer_IsladeProvidenciaySantaCatalina_2);
+        map.addLayer(layer_IsladeProvidenciaySantaCatalina_2);
+        function pop_IslaGorgonayGorgonilla_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NOMBRE_GEO'] !== null ? autolinker.link(feature.properties['NOMBRE_GEO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PROYECTO'] !== null ? autolinker.link(feature.properties['PROYECTO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SYMBOL'] !== null ? autolinker.link(feature.properties['SYMBOL'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['FECHA'] !== null ? autolinker.link(feature.properties['FECHA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ESCALA'] !== null ? autolinker.link(feature.properties['ESCALA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['GLOBALID'] !== null ? autolinker.link(feature.properties['GLOBALID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SHAPE_Leng'] !== null ? autolinker.link(feature.properties['SHAPE_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SHAPE_Area'] !== null ? autolinker.link(feature.properties['SHAPE_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_IslaGorgonayGorgonilla_3_0() {
+            return {
+                pane: 'pane_IslaGorgonayGorgonilla_3',
+                opacity: 1,
+                color: 'rgba(56,128,54,0.7)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(77,175,74,0.7)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_IslaGorgonayGorgonilla_3');
+        map.getPane('pane_IslaGorgonayGorgonilla_3').style.zIndex = 403;
+        map.getPane('pane_IslaGorgonayGorgonilla_3').style['mix-blend-mode'] = 'normal';
+        var layer_IslaGorgonayGorgonilla_3 = new L.geoJson(json_IslaGorgonayGorgonilla_3, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_IslaGorgonayGorgonilla_3',
+            layerName: 'layer_IslaGorgonayGorgonilla_3',
+            pane: 'pane_IslaGorgonayGorgonilla_3',
+            onEachFeature: pop_IslaGorgonayGorgonilla_3,
+            style: style_IslaGorgonayGorgonilla_3_0,
+        });
+        bounds_group.addLayer(layer_IslaGorgonayGorgonilla_3);
+        map.addLayer(layer_IslaGorgonayGorgonilla_3);
+        function pop_Especie_4(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">REINO</th>\
+                        <td class="visible-with-data" id="REINO">' + (feature.properties['REINO'] !== null ? autolinker.link(feature.properties['REINO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">FILO</th>\
+                        <td class="visible-with-data" id="FILO">' + (feature.properties['FILO'] !== null ? autolinker.link(feature.properties['FILO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">CLASE</th>\
+                        <td class="visible-with-data" id="CLASE">' + (feature.properties['CLASE'] !== null ? autolinker.link(feature.properties['CLASE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">ORDEN</th>\
+                        <td class="visible-with-data" id="ORDEN">' + (feature.properties['ORDEN'] !== null ? autolinker.link(feature.properties['ORDEN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">FAMILIA</th>\
+                        <td class="visible-with-data" id="FAMILIA">' + (feature.properties['FAMILIA'] !== null ? autolinker.link(feature.properties['FAMILIA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">GENERO</th>\
+                        <td class="visible-with-data" id="GENERO">' + (feature.properties['GENERO'] !== null ? autolinker.link(feature.properties['GENERO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">ESPECIE</th>\
+                        <td class="visible-with-data" id="ESPECIE">' + (feature.properties['ESPECIE'] !== null ? autolinker.link(feature.properties['ESPECIE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">SUBESPECIE</th>\
+                        <td class="visible-with-data" id="SUBESPECIE">' + (feature.properties['SUBESPECIE'] !== null ? autolinker.link(feature.properties['SUBESPECIE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">AUTOR_NOMB</th>\
+                        <td class="visible-with-data" id="AUTOR_NOMB">' + (feature.properties['AUTOR_NOMB'] !== null ? autolinker.link(feature.properties['AUTOR_NOMB'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">PAIS</th>\
+                        <td class="visible-with-data" id="PAIS">' + (feature.properties['PAIS'] !== null ? autolinker.link(feature.properties['PAIS'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">LUGAR</th>\
+                        <td class="visible-with-data" id="LUGAR">' + (feature.properties['LUGAR'] !== null ? autolinker.link(feature.properties['LUGAR'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">DEPARTAMEN</th>\
+                        <td class="visible-with-data" id="DEPARTAMEN">' + (feature.properties['DEPARTAMEN'] !== null ? autolinker.link(feature.properties['DEPARTAMEN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">MSNM</th>\
+                        <td class="visible-with-data" id="MSNM">' + (feature.properties['MSNM'] !== null ? autolinker.link(feature.properties['MSNM'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">PROFUNDIDA</th>\
+                        <td class="visible-with-data" id="PROFUNDIDA">' + (feature.properties['PROFUNDIDA'] !== null ? autolinker.link(feature.properties['PROFUNDIDA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">FECHA</th>\
+                        <td class="visible-with-data" id="FECHA">' + (feature.properties['FECHA'] !== null ? autolinker.link(feature.properties['FECHA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">BASE_REGIS</th>\
+                        <td class="visible-with-data" id="BASE_REGIS">' + (feature.properties['BASE_REGIS'] !== null ? autolinker.link(feature.properties['BASE_REGIS'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">FUENTE_INS</th>\
+                        <td class="visible-with-data" id="FUENTE_INS">' + (feature.properties['FUENTE_INS'] !== null ? autolinker.link(feature.properties['FUENTE_INS'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">IDENTIFICA</th>\
+                        <td class="visible-with-data" id="IDENTIFICA">' + (feature.properties['IDENTIFICA'] !== null ? autolinker.link(feature.properties['IDENTIFICA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">UICN</th>\
+                        <td class="visible-with-data" id="UICN">' + (feature.properties['UICN'] !== null ? autolinker.link(feature.properties['UICN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Especie_4_0(feature) {
+            switch(String(feature.properties['ESPECIE'])) {
+                case 'Alopoglossus gorgonae':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(141,232,206,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Ameiva ameiva':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(177,104,214,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Ameiva fuliginosa':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(42,208,69,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anadia vittata':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(20,232,218,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anolis chloris':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,159,29,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anolis concolor':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,152,23,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anolis gorgonae':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(65,159,213,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anolis medemi':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(191,226,35,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anolis parvauritus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(31,90,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anolis pinchoti':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(213,64,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anolis princeps':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(29,205,135,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Aristelliger georgeensis':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(25,139,239,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Atractus medusa':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(126,220,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Basiliscus galeritus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(85,230,124,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Boa Constrictor':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(196,209,57,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Boa imperator':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(214,35,238,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Bothrops asper':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,207,109,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Caretta caretta':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(233,216,102,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Chelonia mydas':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(223,54,74,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Chelonoidis carbonarius':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(107,232,155,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Chironius grandisquamis':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(223,132,63,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Clelia clelia':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(120,128,202,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Cnemidophorus espeuti':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(49,182,205,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Cnemidophorus lemniscatus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(51,126,231,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Ctenosaura similis':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(119,218,57,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Echinosaura horrida':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(229,62,65,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Enyalioides heterolepis':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(70,51,211,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Epictia albifrons':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(25,156,200,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Epictia goudotii':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(233,227,51,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Epictia magnamaculata':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(215,58,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Eretmochelys imbricata':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,126,39,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Gonatodes albogularis':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(153,240,23,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Hemidactylus angulatus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(67,202,60,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Hemidactylus brookii':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(28,204,210,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Hemidactylus frenatus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(238,49,153,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Holcosus bridgesii':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(126,46,225,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Hydrophis platurus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(203,14,184,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Iguana iguana':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(239,28,77,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Imantodes cenchoa':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(102,126,221,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Lepidoblepharis intermedius':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(14,238,126,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Lepidoblepharis peraccae':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(201,120,82,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Lepidoblepharis ruthveni':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(178,238,36,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Lepidochelys olivacea':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(215,129,107,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Lepidodactylus lugubris':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(203,91,78,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Leptodeira rhombifera':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(211,19,83,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Leptophis bocourti':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(132,100,240,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Leptophis depressirostris':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(72,69,239,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Marisora pergravis':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(129,213,50,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Micrurus mipartitus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,69,184,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Oxybelis aeneus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(159,119,239,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Phrynonax shropshirei':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(168,53,200,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sphaerodactylus argus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(67,212,14,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Thecadactylus rapicauda':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,63,168,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Tretioscincus bifasciatus':
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(192,138,233,1.0)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_Especie_4',
+                radius: 2.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(28,201,169,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Especie_4');
+        map.getPane('pane_Especie_4').style.zIndex = 404;
+        map.getPane('pane_Especie_4').style['mix-blend-mode'] = 'normal';
+        var layer_Especie_4 = new L.geoJson(json_Especie_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Especie_4',
+            layerName: 'layer_Especie_4',
+            pane: 'pane_Especie_4',
+            onEachFeature: pop_Especie_4,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_Especie_4_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Especie_4);
+        map.addLayer(layer_Especie_4);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var overlaysTree = [
+            {label: 'Especie<br /><table><tr><td style="text-align: center;"><img src="legend/Especie_4_Alopoglossusgorgonae0.png" /></td><td>Alopoglossus gorgonae</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Ameivaameiva1.png" /></td><td>Ameiva ameiva</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Ameivafuliginosa2.png" /></td><td>Ameiva fuliginosa</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Anadiavittata3.png" /></td><td>Anadia vittata</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Anolischloris4.png" /></td><td>Anolis chloris</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Anolisconcolor5.png" /></td><td>Anolis concolor</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Anolisgorgonae6.png" /></td><td>Anolis gorgonae</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Anolismedemi7.png" /></td><td>Anolis medemi</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Anolisparvauritus8.png" /></td><td>Anolis parvauritus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Anolispinchoti9.png" /></td><td>Anolis pinchoti</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Anolisprinceps10.png" /></td><td>Anolis princeps</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Aristelligergeorgeensis11.png" /></td><td>Aristelliger georgeensis</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Atractusmedusa12.png" /></td><td>Atractus medusa</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Basiliscusgaleritus13.png" /></td><td>Basiliscus galeritus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_BoaConstrictor14.png" /></td><td>Boa Constrictor</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Boaimperator15.png" /></td><td>Boa imperator</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Bothropsasper16.png" /></td><td>Bothrops asper</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Carettacaretta17.png" /></td><td>Caretta caretta</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Cheloniamydas18.png" /></td><td>Chelonia mydas</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Chelonoidiscarbonarius19.png" /></td><td>Chelonoidis carbonarius</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Chironiusgrandisquamis20.png" /></td><td>Chironius grandisquamis</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Cleliaclelia21.png" /></td><td>Clelia clelia</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Cnemidophorusespeuti22.png" /></td><td>Cnemidophorus espeuti</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Cnemidophoruslemniscatus23.png" /></td><td>Cnemidophorus lemniscatus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Ctenosaurasimilis24.png" /></td><td>Ctenosaura similis</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Echinosaurahorrida25.png" /></td><td>Echinosaura horrida</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Enyalioidesheterolepis26.png" /></td><td>Enyalioides heterolepis</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Epictiaalbifrons27.png" /></td><td>Epictia albifrons</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Epictiagoudotii28.png" /></td><td>Epictia goudotii</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Epictiamagnamaculata29.png" /></td><td>Epictia magnamaculata</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Eretmochelysimbricata30.png" /></td><td>Eretmochelys imbricata</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Gonatodesalbogularis31.png" /></td><td>Gonatodes albogularis</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Hemidactylusangulatus32.png" /></td><td>Hemidactylus angulatus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Hemidactylusbrookii33.png" /></td><td>Hemidactylus brookii</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Hemidactylusfrenatus34.png" /></td><td>Hemidactylus frenatus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Holcosusbridgesii35.png" /></td><td>Holcosus bridgesii</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Hydrophisplaturus36.png" /></td><td>Hydrophis platurus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Iguanaiguana37.png" /></td><td>Iguana iguana</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Imantodescenchoa38.png" /></td><td>Imantodes cenchoa</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Lepidoblepharisintermedius39.png" /></td><td>Lepidoblepharis intermedius</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Lepidoblepharisperaccae40.png" /></td><td>Lepidoblepharis peraccae</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Lepidoblepharisruthveni41.png" /></td><td>Lepidoblepharis ruthveni</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Lepidochelysolivacea42.png" /></td><td>Lepidochelys olivacea</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Lepidodactyluslugubris43.png" /></td><td>Lepidodactylus lugubris</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Leptodeirarhombifera44.png" /></td><td>Leptodeira rhombifera</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Leptophisbocourti45.png" /></td><td>Leptophis bocourti</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Leptophisdepressirostris46.png" /></td><td>Leptophis depressirostris</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Marisorapergravis47.png" /></td><td>Marisora pergravis</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Micrurusmipartitus48.png" /></td><td>Micrurus mipartitus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Oxybelisaeneus49.png" /></td><td>Oxybelis aeneus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Phrynonaxshropshirei50.png" /></td><td>Phrynonax shropshirei</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Sphaerodactylusargus51.png" /></td><td>Sphaerodactylus argus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Thecadactylusrapicauda52.png" /></td><td>Thecadactylus rapicauda</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_Tretioscincusbifasciatus53.png" /></td><td>Tretioscincus bifasciatus</td></tr><tr><td style="text-align: center;"><img src="legend/Especie_4_54.png" /></td><td></td></tr></table>', layer: layer_Especie_4},
+            {label: '<img src="legend/IslaGorgonayGorgonilla_3.png" /> Isla Gorgona y Gorgonilla', layer: layer_IslaGorgonayGorgonilla_3},
+            {label: '<img src="legend/IsladeProvidenciaySantaCatalina_2.png" /> Isla de Providencia y Santa Catalina', layer: layer_IsladeProvidenciaySantaCatalina_2},
+            {label: '<img src="legend/Colombia_1.png" /> Colombia', layer: layer_Colombia_1},
+            {label: "ESRI Satellite", layer: layer_ESRISatellite_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        var i = 0;
+        layer_Colombia_1.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['NOM_DEPART'] !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['NOM_DEPART']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Colombia_1'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_IsladeProvidenciaySantaCatalina_2.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['DeNombre'] !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['DeNombre']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_IsladeProvidenciaySantaCatalina_2'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_IslaGorgonayGorgonilla_3.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['NOMBRE_GEO'] !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['NOMBRE_GEO']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_IslaGorgonayGorgonilla_3'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        resetLabels([layer_Colombia_1,layer_IsladeProvidenciaySantaCatalina_2,layer_IslaGorgonayGorgonilla_3]);
+        map.on("zoomend", function(){
+            resetLabels([layer_Colombia_1,layer_IsladeProvidenciaySantaCatalina_2,layer_IslaGorgonayGorgonilla_3]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_Colombia_1,layer_IsladeProvidenciaySantaCatalina_2,layer_IslaGorgonayGorgonilla_3]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_Colombia_1,layer_IsladeProvidenciaySantaCatalina_2,layer_IslaGorgonayGorgonilla_3]);
+        });
+        </script>
+    </body>
+</html>
